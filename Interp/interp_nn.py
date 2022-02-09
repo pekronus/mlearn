@@ -197,17 +197,24 @@ if __name__ == '__main__':
     train_data = create_data_for_interp(vf2l, 3,nbatches = 1, batch_size=100)
     model= net1()
     #model.fc1.weight
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0, nesterov=False)
-
-
-    for epoch in range(1, 10000):
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.5, momentum=0, nesterov=False)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, factor=0.1, patience=5, verbose=False
+    )
+    losses = []
+    for epoch in range(1, 2000):
         #print("-------------\nEpoch {}:\n".format(epoch))
         # Run **training***
         loss = run_epoch(train_data, model.train(), optimizer)
-        print('Epoch: {} Train loss: {:.6f}'.format(epoch, loss))        # Run **validation**
+        losses.append(loss)
+        print('Epoch: {} Train loss: {:.6f}, lr = {}'.format(epoch, loss, optimizer.param_groups[0]['lr']))        # Run **validation**
         #val_loss = run_epoch(val_data, model.eval(), optimizer)
-
+        scheduler.step(loss)
     model.eval()
 
     for p in model.parameters():
         print(p)
+
+    #plot losses
+    plt.plot([i for i in range(len(losses))], losses)
+    plt.show()
