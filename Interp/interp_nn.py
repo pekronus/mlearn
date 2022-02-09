@@ -22,7 +22,7 @@ class net1(nn.Module):
      #   #xb = F.tanh(self.fc2(xb))
         return xb
 
-def testf1(batch, lr = 0.01, lr_scale = 0.95):
+def testf1(batch, lr = 0.01, lr_scale = 0.95, Nepoch = 10):
     print('Testf1')
     # create a model
     mdl = net1()
@@ -32,7 +32,7 @@ def testf1(batch, lr = 0.01, lr_scale = 0.95):
     y = batch[0]['y']
 
     losses = []
-    for epoch in range(1, 3):
+    for epoch in range(1, Nepoch):
         if (epoch % 20 == 0):
             lr *= lr_scale
 
@@ -46,9 +46,9 @@ def testf1(batch, lr = 0.01, lr_scale = 0.95):
         # update parameters
         with torch.no_grad():
             for p in mdl.parameters():
-                print('p grad: ', p.grad)
+                #print('p grad: ', p.grad)
                 p -= p.grad * lr
-                print('p = ', p)
+                #print('p = ', p)
             mdl.zero_grad()
 
     print('-------------------')
@@ -65,7 +65,7 @@ def testf1(batch, lr = 0.01, lr_scale = 0.95):
 #    print('A@a - y: ', (A@a - y) )
 # optimizer = torch.optim.SGD(A, lr=0.01)
 
-def testf(batch, lr = 0.01, lr_scale = 0.95):
+def testf(batch, lr = 0.01, lr_scale = 0.95, Nepoch = 10):
     print('Testf')
     def mdl(x, A):
         return x@A.T
@@ -79,7 +79,7 @@ def testf(batch, lr = 0.01, lr_scale = 0.95):
     y = batch[0]['y']
 
     losses = []
-    for epoch in range(1,3):
+    for epoch in range(1,Nepoch):
         if (epoch%20 == 0):
             lr *= lr_scale
 
@@ -96,7 +96,7 @@ def testf(batch, lr = 0.01, lr_scale = 0.95):
         # take the backward() for y
         loss.backward()
         # print the gradients w.r.t. above x, w, and b
-        print("A.grad:", A.grad)
+        #print("A.grad:", A.grad)
         # print("y.grad:", y.grad)
         # print("a.grad:", a.grad)
 
@@ -168,9 +168,9 @@ def run_epoch(data, model, optimizer):
         if is_training:
             optimizer.zero_grad()
             loss.backward()
-            print(model.fc1.weight.grad)
+            #print(model.fc1.weight.grad)
             optimizer.step()
-            print("weights =: ", model.fc1.weight)
+            #print("weights =: ", model.fc1.weight)
 
     # Calculate epoch level scores
     avg_loss = np.mean(losses)
@@ -186,26 +186,25 @@ def func_to_learn(x, params):
 
 if __name__ == '__main__':
     torch.manual_seed(0)
+    np.random.seed(0)
 
     vf2l = np.vectorize(func_to_learn, excluded={1})
-    batch = create_data_for_interp(vf2l, 3, nbatches=1, batch_size=100)
-    testf(batch, lr=0.01, lr_scale=0.95)
-    testf1(batch, lr=0.01, lr_scale = 0.95)
-    exit()
+    #batch = create_data_for_interp(vf2l, 3, nbatches=1, batch_size=100)
+    # #testf(batch, lr=0.01, lr_scale=0.95, Nepoch=1000)
+    #testf1(batch, lr=0.01, lr_scale = 1, Nepoch=10000)
+    #exit()
 
-    vf2l = np.vectorize(func_to_learn, excluded={1})
-
-    train_data = create_data_for_interp(vf2l, 3,nbatches = 1, batch_size=1)
+    train_data = create_data_for_interp(vf2l, 3,nbatches = 1, batch_size=100)
     model= net1()
     #model.fc1.weight
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0, nesterov=False)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0, nesterov=False)
 
 
-    for epoch in range(1, 1000):
-        print("-------------\nEpoch {}:\n".format(epoch))
+    for epoch in range(1, 10000):
+        #print("-------------\nEpoch {}:\n".format(epoch))
         # Run **training***
         loss = run_epoch(train_data, model.train(), optimizer)
-        print('Train loss: {:.6f}'.format(loss))        # Run **validation**
+        print('Epoch: {} Train loss: {:.6f}'.format(epoch, loss))        # Run **validation**
         #val_loss = run_epoch(val_data, model.eval(), optimizer)
 
     model.eval()
