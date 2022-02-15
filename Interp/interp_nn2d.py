@@ -8,6 +8,8 @@ import torch.nn.functional as F
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
+
+
 class net1(nn.Module):
     def __init__(self):
         super().__init__()
@@ -21,101 +23,6 @@ class net1(nn.Module):
      #   #xb = self.drop(xb)
      #   #xb = F.tanh(self.fc2(xb))
         return xb
-
-def testf1(batch, lr = 0.01, lr_scale = 0.95, Nepoch = 10):
-    print('Testf1')
-    # create a model
-    mdl = net1()
-
-
-    a = batch[0]['x']
-    y = batch[0]['y']
-
-    losses = []
-    for epoch in range(1, Nepoch):
-        if (epoch % 20 == 0):
-            lr *= lr_scale
-
-        out = mdl(a)
-        loss = F.mse_loss(out, y)
-        losses.append(loss.item())
-        print("Epoch: ", epoch, ' lr = ', lr, ' loss:', loss.item())
-
-        # take the backward() for y
-        loss.backward()
-        # update parameters
-        with torch.no_grad():
-            for p in mdl.parameters():
-                #print('p grad: ', p.grad)
-                p -= p.grad * lr
-                #print('p = ', p)
-            mdl.zero_grad()
-
-    print('-------------------')
-    # loss = 0.5 * (A @ a - y).T @ (A @ a - y)
-    out = mdl(a)
-    loss = F.mse_loss(out, y)
-    print('Final loss:', loss.item())
-    plt.plot([i for i in range(len(losses))], losses)
-    plt.show()
-    for p in mdl.parameters():
-        print('params = ', p)
-
-
-#    print('A@a - y: ', (A@a - y) )
-# optimizer = torch.optim.SGD(A, lr=0.01)
-
-def testf(batch, lr = 0.01, lr_scale = 0.95, Nepoch = 10):
-    print('Testf')
-    def mdl(x, A):
-        return x@A.T
-
-
-    #a = torch.tensor(np.array([1.0,1.0,1.0]).reshape(3,1), requires_grad= False)
-    A = torch.tensor(np.zeros((11,3)), requires_grad = True)
-    #y = torch.tensor(np.array([1+i + i*i for i in range(11)]).reshape(11,1), requires_grad = False)
-
-    a = batch[0]['x']
-    y = batch[0]['y']
-
-    losses = []
-    for epoch in range(1,Nepoch):
-        if (epoch%20 == 0):
-            lr *= lr_scale
-
-        # define a function y
-        # with torch.no_grad():
-        #     t = A@a - y
-        #     print('t = ', t, t.T@t)
-        out = mdl(a,A)
-        loss = F.mse_loss(out, y)
-        losses.append(loss.item())
-        #loss = (A@a - y).sum()
-        print("Epoch: ", epoch, ' lr = ', lr, ', loss = ', loss.item())
-
-        # take the backward() for y
-        loss.backward()
-        # print the gradients w.r.t. above x, w, and b
-        #print("A.grad:", A.grad)
-        # print("y.grad:", y.grad)
-        # print("a.grad:", a.grad)
-
-        with torch.no_grad():
-            A -= A.grad*lr
-            A.grad.zero_()
-        print("A:", A)
-
-
-    print('-------------------')
-    #loss = 0.5 * (A @ a - y).T @ (A @ a - y)
-    out = mdl(a, A)
-    loss = F.mse_loss(out, y)
-    print('Final loss:', loss.item())
-    plt.plot([i for i in range(len(losses))], losses)
-    plt.show()
-    print("A:", A)
-#    print('A@a - y: ', (A@a - y) )
-    #optimizer = torch.optim.SGD(A, lr=0.01)
 
 
 def create_data_for_interp(f, nparams, nbatches=1, batch_size = 100):
